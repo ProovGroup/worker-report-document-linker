@@ -4,7 +4,7 @@ Cette lambda permet de lier un document stocké dans le S3 à un rapport via un 
 
 # Fonctionnement
 
-Le lien permanent du document est ajouté à la table `rptdocument` et est lié au rapport par le `proov_code`.
+Le lien permanent du document est ajouté à la table `rptdocuments` et est lié au rapport par le `proov_code`.
 
 Ce document devient alors visible dans les pièces-jointes, par exemple depuis l'output web du rapport.
 
