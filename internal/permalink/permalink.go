@@ -14,7 +14,7 @@ func GetPermalink(region string, bucket string, key string) string {
 		return ""
 	}
 
-	baseURL := "https://permalink.weproov.com"
+	baseURL := "https://permalink2.weproov.com"
 	link := permalink.NewPermalink(ENV, permalink.S3, 0)
 
 	url, err := link.SetRegion(region).SetBucket(bucket).SetKey(key).AppendToURL(baseURL)
