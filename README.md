@@ -12,7 +12,7 @@ Ce document devient alors visible dans les pièces-jointes, par exemple depuis l
 
 S3 Key: `any/path/{proov_code}/{filename}.{extension}`
 
-Les propriétés du chemin `proov_code`, `filename` et `extension` sont utilisé en plus de la region et bucket S3 afin de lié le document au rapport
+Les propriétés du chemin `proov_code`, `filename` et `extension` sont utilisés en plus de la region et bucket S3 afin de lier le document au rapport
 
 ```go
 type Document struct {
