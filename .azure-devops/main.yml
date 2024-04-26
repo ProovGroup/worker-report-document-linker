@@ -1,0 +1,80 @@
+trigger:
+  - none
+
+resources:
+  pipelines:
+  - pipeline: terraform # Name of the pipeline resource.
+    source: 3_Dev/ProovGroup.lambdatest3s.Terraform # The name of the pipeline referenced by this pipeline resource.
+    # project: FabrikamProject # Required only if the source pipeline is in another project
+    trigger: true # Run app-ci pipeline when any run of security-lib-ci completes
+
+  repositories:
+    - repository: templates
+      type: github
+      name: ProovGroup/ci-templates-azure
+      endpoint: ProovGroup
+
+variables:
+  - group: PASSWORDS
+  - group: GO_CONFIG
+  - name: buildEnvironment
+    ${{ if eq(variables['Build.SourceBranchName'], 'develop') }}:
+      value: "test"
+    ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
+      value: "production"
+    ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+      value: "production"
+
+  - name: awsEnvironment
+    ${{ if eq(variables['Build.SourceBranchName'], 'develop') }}:
+      value: "AWS - TEST"
+    ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
+      value: "AWS - PRODUCTION"
+    ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+      value: "AWS - PRODUCTION"
+
+  - name: awsRoleArn
+    ${{ if eq(variables['Build.SourceBranchName'], 'develop') }}:
+      value: ""
+    ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
+      value: ""
+    ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+      value: ""
+
+  - name: vmImageName
+    value: "ubuntu-latest"
+
+  - name: serviceName
+    value: "lambdatest3s"
+
+  - name: awsRegion
+    value: "eu-west-1"
+
+  - name: runtime
+    value: "go1.x"
+
+parameters:
+  - name: runTerraform
+    displayName: "runTerraform"
+    type: boolean
+    default: false
+  - name: withConf
+    displayName: "runWithConf"
+    type: boolean
+    default: false
+  - name: withAssets
+    displayName: "runWithAssets"
+    type: boolean
+    default: false
+
+stages:
+  - template: stage-lambda-generic.yml@templates
+    parameters:
+      service_name: $(serviceName)
+      aws_region: $(awsRegion)
+      aws_environment: $(awsEnvironment)
+      aws_role_arn: $(awsRoleArn)
+      build_environment: $(buildEnvironment)
+      vm_image: $(vmImageName)
+      runtime: $(runtime)
+      withAssets: ${{ parameters.withAssets }}

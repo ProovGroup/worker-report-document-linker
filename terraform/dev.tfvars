@@ -1,0 +1,6 @@
+region = ""
+runtime = ""
+timeout = ""
+attach_sqs_policy = ""
+attach_ssm_policy = ""
+attach_s3_policy = ""

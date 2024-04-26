@@ -1,0 +1,124 @@
+trigger:
+  - none # test
+
+resources:
+  repositories:
+    - repository: infrastructure
+      type: github
+      name: ProovGroup/infrastructure
+      endpoint: ProovGroup
+    - repository: terraform
+      type: github
+      name: ProovGroup/TerraformAwsResource
+      endpoint: ProovGroup
+
+variables:
+  - group: PASSWORDS
+  - name: backendServiceAWS
+    ${{ if eq(variables['Build.SourceBranchName'], 'develop') }}:
+      value: "AWS_DEVOPS_TEST"
+    ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
+      value: "AWS_DEVOPS_TEST"
+    ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+      value: "AWS_DEVOPS_TEST"
+  - name: workingDir
+    ${{ if eq(variables['Build.SourceBranchName'], 'develop') }}:
+      value: '$(System.DefaultWorkingDirectory)/aws/dev'
+    ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
+      value: '$(System.DefaultWorkingDirectory)/terraform'
+    ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+      value: '$(System.DefaultWorkingDirectory)/terraform'
+
+pool:
+  vmImage: ubuntu-latest
+
+parameters:
+- name: target
+  type: boolean
+  default: true
+
+- name: resource
+  type: string
+  default: 'lambda'
+
+- name: region
+  type: string
+  default: 'eu-west-1'
+
+- name: resource_name
+  type: string
+  default: 'myawesomeresource'
+
+- name: provider
+  type: string
+  default: 'aws'
+
+- name: CreateAction
+  displayName: "Create"
+  type: boolean
+  default: false
+
+- name: DestroyAction
+  displayName: "Destroy"
+  type: boolean
+  default: false
+
+
+stages:
+- stage: deploy_stage
+  displayName: terraform stage
+  jobs:
+  - job: deploy_job
+    displayName: terraform
+    steps:
+      - ${{ if eq( parameters['CreateAction'], true ) }}:
+        - ${{ if eq( parameters['target'], true ) }}:
+          - template: create-target-resource.yml@terraform
+            parameters:
+              working_dir: $(workingDir)
+              resource_name: ${{ parameters.resource_name }}
+              provider: ${{ parameters.provider }}
+              region: ${{ parameters.region }}
+              resource: ${{ parameters.resource }}
+        - ${{ else }}:
+          - template: create-resource.yml@terraform
+            parameters:
+              working_dir: $(workingDir)
+              resource_name: ${{ parameters.resource_name }}
+              provider: ${{ parameters.provider }}
+              region: ${{ parameters.region }}
+              resource: ${{ parameters.resource }}
+
+
+      - ${{ if eq( parameters['DestroyAction'], true ) }}:
+        - ${{ if eq( parameters['target'], true ) }}:
+          - template: destroy-target-resource.yml@terraform
+            parameters:
+              working_dir: $(workingDir)
+              provider: ${{ parameters.provider }}
+              region: ${{ parameters.region }}
+              resource: ${{ parameters.resource }}
+        - ${{ else }}:
+          - template: destroy-resource.yml@terraform
+            parameters:
+              working_dir: $(workingDir)
+              provider: ${{ parameters.provider }}
+              region: ${{ parameters.region }}
+              resource: ${{ parameters.resource }}
+
+- stage: inventory
+  displayName: terraform inventory
+  jobs:
+  - job: add_to_iventory
+    displayName: add to terraform inventory
+    steps:
+    - script: |
+        echo "
+        machine github.com
+        login $(GITHUB_LOGIN)
+        password $(GITHUB_TOKEN)
+        " > ~/.netrc
+      displayName: 'Prepare github connection'
+    - checkout: infrastructure
+      fetchDepth: 0
+      displayName: "checkout infrastructure"
