@@ -1,13 +1,8 @@
 trigger:
-  - none
+  - main # production
+  - develop # test
 
 resources:
-  pipelines:
-  - pipeline: terraform # Name of the pipeline resource.
-    source: 3_Dev/ProovGroup.lambdatest3s.Terraform # The name of the pipeline referenced by this pipeline resource.
-    # project: FabrikamProject # Required only if the source pipeline is in another project
-    trigger: true # Run app-ci pipeline when any run of security-lib-ci completes
-
   repositories:
     - repository: templates
       type: github
@@ -35,23 +30,29 @@ variables:
 
   - name: awsRoleArn
     ${{ if eq(variables['Build.SourceBranchName'], 'develop') }}:
-      value: ""
+      value: "worker-report-document-linker"
     ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
-      value: ""
+      value: "worker-report-document-linker"
     ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
-      value: ""
+      value: "worker-report-document-linker"
 
   - name: vmImageName
     value: "ubuntu-latest"
 
   - name: serviceName
-    value: "lambdatest3s"
+    value: "worker-report-document-linker"
 
   - name: awsRegion
     value: "eu-west-1"
 
-  - name: runtime
-    value: "go1.x"
+  - name: Runtime
+    value: "provided.al2023"
+
+  - name: goversion
+    value: "1.22.1"
+
+  - name: working_dir
+    value: "$(System.DefaultWorkingDirectory)"
 
 parameters:
   - name: runTerraform
@@ -66,15 +67,40 @@ parameters:
     displayName: "runWithAssets"
     type: boolean
     default: false
-
+  - name: runtime2023
+    displayName: "runtime2023"
+    type: boolean
+    default: true
+    
 stages:
-  - template: stage-lambda-generic.yml@templates
-    parameters:
-      service_name: $(serviceName)
-      aws_region: $(awsRegion)
-      aws_environment: $(awsEnvironment)
-      aws_role_arn: $(awsRoleArn)
-      build_environment: $(buildEnvironment)
-      vm_image: $(vmImageName)
-      runtime: $(runtime)
-      withAssets: ${{ parameters.withAssets }}
+  - stage:
+    displayName: 'Build package by runtime'
+    jobs:
+    - job:
+      steps:
+        - template: stage-al2023-configuration.yml@templates
+          parameters:
+            service_name: $(serviceName)
+            environment: $(buildEnvironment)
+            working_dir: $(working_dir)
+            runtime: $(Runtime)
+            go_version: $(goversion)
+  - stage: DeployAWS
+    displayName: 'Deploy to AWS environment'
+    jobs:
+    - job:
+      steps:
+        - template: task-deploy-lambda-2023.yml@templates
+          parameters:
+            service_name: $(serviceName)
+            environment: $(buildEnvironment)
+            aws_region: $(awsRegion)
+            aws_environment: $(awsEnvironment)
+            aws_role_arn: $(awsRoleArn)
+        - template: task-update-lambda-alias.yml@templates
+          parameters:
+            service_name: $(serviceName)
+            environment: $(buildEnvironment)
+            aws_region: $(awsRegion)
+            aws_environment: $(awsEnvironment)
+            lambda_version: $(deployedLambda)
