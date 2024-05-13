@@ -4,26 +4,27 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
-	"worker-report-document-linker/internal/db"
 	"worker-report-document-linker/internal/document"
+	webhooksNotifier "worker-report-document-linker/internal/sqs/webhooks-notifier"
 
-	"github.com/ProovGroup/env"
+	webhook "github.com/ProovGroup/lib-core-models-webhook"
 	"github.com/aws/aws-lambda-go/events"
 )
 
-func Handler(ctx context.Context, event events.SQSEvent) error {
-	for i, sqsRecord := range event.Records {
-		e, err := env.GetEnvSqsArnSSM(event.Records[i].EventSourceARN, os.Getenv("AWS_REGION"), env.BDDWrite)
-		if err != nil {
-			fmt.Println("[ERROR] env.GetEnvSqsArnSSM:", err)
-			return err
-		}
+type MessageEvent struct {
+	ProovCode string            `json:"proov_code"`
+	Owner     int               `json:"owner"`
+	State     string            `json:"state"`
+	Event     webhook.EventType `json:"event"`
+	WebHookID int               `json:"webhook_id,omitempty"`
+}
 
+func Handler(ctx context.Context, event events.SQSEvent) error {
+	for _, sqsRecord := range event.Records {
 		s3Event := events.S3Event{}
 
-		err = json.Unmarshal([]byte(sqsRecord.Body), &s3Event)
+		err := json.Unmarshal([]byte(sqsRecord.Body), &s3Event)
 		if err != nil {
 			fmt.Println("[Error] Unmarshal record event", err)
 			return err
@@ -42,10 +43,10 @@ func Handler(ctx context.Context, event events.SQSEvent) error {
 			proovCode := parts[len(parts)-2]
 			file := strings.Split(parts[len(parts)-1], ".")
 
-			document := document.Document {
+			docToLink := document.Document{
 				Name: file[0],
 				Type: file[1],
-				Path: document.Path {
+				Path: document.Path{
 					Region: s3Region,
 					Bucket: s3Bucket,
 					Key:    s3Key,
@@ -53,26 +54,30 @@ func Handler(ctx context.Context, event events.SQSEvent) error {
 			}
 
 			fmt.Println("[INFO] ProovCode:", proovCode)
-			fmt.Println("[INFO] Document:", document)
+			fmt.Println("[INFO] Document:", docToLink)
 
 			// Get permalink
-			link := document.GetPermalink()
+			link := docToLink.GetPermalink()
 			if link == "" {
 				return fmt.Errorf("[ERROR] link is empty")
 			}
 
 			// Save document
-			err = db.SaveDocument(&e, proovCode, &document, link)
+			err := document.NewRepository(&docToLink).Save(proovCode, link)
 			if err != nil {
-				fmt.Println("[ERROR] db.SaveDocument:", err)
+				fmt.Println("[ERROR] NewRepository(&document).Save:", err)
 				return err
 			}
 
 			fmt.Println("[INFO] Document linked successfully")
+
+			// Send an event to webhooks-notifier only if the document linked is a matrix report
+			if strings.HasSuffix(s3Key, "matrix.pdf") {
+				webhooksNotifier.Send(proovCode)
+				fmt.Println("[INFO] Webhook message sent to webhooks-notifier queue")
+			}
 		}
 	}
 
 	return nil
 }
-
-
