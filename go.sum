@@ -29,7 +29,7 @@ github.com/ProovGroup/lib-core-models-s3picture v0.0.0-20210127150118-9de7c0e5fe
 github.com/ProovGroup/lib-core-models-s3picture v0.0.0-20210127150118-9de7c0e5fe72/go.mod h1:QwA+0XIQ7tIHftXfhl4+eONvLL0i298Ijm41FURPVkE=
 github.com/ProovGroup/lib-core-models-translation v0.0.0-20210127135242-2d96d259210e h1:FX9J5TCzg2q4l/LIeDsvOL+EgSYxfnWDfBTgkF2c16o=
 github.com/ProovGroup/lib-core-models-translation v0.0.0-20210127135242-2d96d259210e/go.mod h1:qXcgkIXIvy5jB/xXj5fWACPeQQ/yeuKvKZefUY53JXU=
-github.com/ProovGroup/lib-core-models-webhook v1.4.2 h1:z3Op5v4AWj8KE2yi1X4xxNUEjK7I6YEB5SHNSnqWpFQ=
+github.com/ProovGroup/lib-core-models-webhook v1.4.2 h1:BIQangROs92klf+TqAE5PkFXci7q8sf/h5lUqZz9y0g=
 github.com/ProovGroup/lib-core-models-webhook v1.4.2/go.mod h1:Pak6ZyGXldMCqJEZRf7os1DdOabRvuwjzjAxQ2bCaWU=
 github.com/ProovGroup/lib-env v1.0.0/go.mod h1:fgWI+sbG9Fvi+PCBDNCZQfoqZhtORdEUSDMcdZqVon0=
 github.com/ProovGroup/lib-env v1.6.3/go.mod h1:TLAWlyLsuHxmzrc6lAGNBqjIWlZPueRt4UgOwqmk/FU=
