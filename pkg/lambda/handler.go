@@ -73,7 +73,11 @@ func Handler(ctx context.Context, event events.SQSEvent) error {
 
 			// Send an event to webhooks-notifier only if the document linked is a matrix report
 			if strings.HasSuffix(s3Key, "matrix.pdf") {
-				webhooksNotifier.Send(proovCode)
+				err := webhooksNotifier.Send(proovCode)
+				if err != nil {
+					fmt.Println("[ERROR] webhooksNotifier.Send(proovCode):", err)
+					return err
+				}
 				fmt.Println("[INFO] Webhook message sent to webhooks-notifier queue")
 			}
 		}

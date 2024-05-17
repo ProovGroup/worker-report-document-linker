@@ -23,13 +23,13 @@ func Send(proovCode string) error {
 	e := provider.GetEnv()
 	wh, isExist := e.GetQueue(env.NewQueueSelector(QUEUE_NAME))
 	if isExist == false {
-		return fmt.Errorf("[ERROR] queue not found (%s)\n", QUEUE_NAME)
+		return fmt.Errorf("queue not found (%s)\n", QUEUE_NAME)
 	}
 
 	db := provider.GetDB()
 	r, err := report.GetReport(db, proovCode)
 	if err != nil {
-		return err
+		return fmt.Errorf("report.GetReport(db, proovCode): %s", err)
 	}
 
 	msgEvent := MessageEvent{
