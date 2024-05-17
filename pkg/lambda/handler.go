@@ -76,9 +76,9 @@ func Handler(ctx context.Context, event events.SQSEvent) error {
 				err := webhooksNotifier.Send(proovCode)
 				if err != nil {
 					fmt.Println("[ERROR] webhooksNotifier.Send(proovCode):", err)
-					return err
+				} else {
+					fmt.Println("[INFO] Webhook message sent to webhooks-notifier queue")
 				}
-				fmt.Println("[INFO] Webhook message sent to webhooks-notifier queue")
 			}
 		}
 	}
