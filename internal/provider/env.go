@@ -14,6 +14,7 @@ func init() {
 	bucketEnvName := "weproov-environment-" + os.Getenv("ENV") + "-files"
 	files := []string{
 		"s3://" + bucketEnvName + "/V1/env_core_main_database.json:eu-west-1",
+		"s3://" + bucketEnvName + "/V1/env_sqs_webhooks_notifier.json:eu-west-1",
 	}
 
 	ev, err := env.NewEnvironment(strings.Join(files, ","))
