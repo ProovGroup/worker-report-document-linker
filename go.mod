@@ -4,7 +4,7 @@ go 1.22.1
 
 require (
 	github.com/ProovGroup/lib-core-models-report v1.2.15
-	github.com/ProovGroup/lib-core-models-webhook v1.4.2
+	github.com/ProovGroup/lib-core-models-webhook v1.4.3
 	github.com/ProovGroup/lib-env v1.16.0
 	github.com/ProovGroup/lib-permalink v1.9.1
 	github.com/aws/aws-lambda-go v1.46.0

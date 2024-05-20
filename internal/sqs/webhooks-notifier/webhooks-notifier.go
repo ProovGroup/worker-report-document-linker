@@ -36,7 +36,7 @@ func Send(proovCode string) error {
 		ProovCode: r.ProovCode,
 		Owner:     r.Owner,
 		State:     r.State,
-		Event:     webhook.FirstQuotationCreated,
+		Event:     webhook.MatrixCreated,
 	}
 
 	message := wh.NewMessage()
